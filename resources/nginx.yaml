@@ -1,0 +1,79 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: nginx-namespace
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nginx-deployment
+  namespace: nginx-namespace
+  labels:
+    app: traefiklabs
+    name: nginx
+
+spec:
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  selector:
+    matchLabels:
+      app: traefiklabs
+      task: nginx-task
+  template:
+    metadata:
+      labels:
+        app: traefiklabs
+        task: nginx-task
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx-service
+  namespace: nginx-namespace
+
+spec:
+  ports:
+    - name: http
+      port: 80
+  selector:
+    app: traefiklabs
+    task: nginx-task
+---
+kind: Middleware
+apiVersion: traefik.containo.us/v1alpha1
+metadata:
+  name: nginx-middleware
+  namespace: nginx-namespace
+
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: nginx-ingress
+  namespace: nginx-namespace
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    traefik.ingress.kubernetes.io/router.middlewares: nginx-namespace-nginx-middleware@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls.certresolver: traefikresolver
+
+spec:
+  rules:
+    - host: nginx.4l5.de
+      http:
+        paths:
+          - path: /bar
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80

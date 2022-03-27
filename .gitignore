@@ -1,0 +1,14 @@
+*
+
+# Specific files
+!.gitignore
+
+# Whitelist directories and specific file tpyes
+!*/
+
+!*.mod
+!*.md
+!*.go
+!*.yaml
+!*.json
+!*.ts
