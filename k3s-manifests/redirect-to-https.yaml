@@ -1,7 +1,7 @@
 kind: Middleware
 apiVersion: traefik.containo.us/v1alpha1
 metadata:
-  name: nginx-middleware
+  name: redirect-to-https
 
 spec:
   redirectScheme:
