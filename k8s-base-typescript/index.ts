@@ -11,24 +11,42 @@ const nextcloud = new k8s.helm.v3.Chart("nextcloud", {
         repo: "https://nextcloud.github.io/helm/",
     },
     values: {
+        image: {
+            tag: "23.0.3",
+        },
         ingress: {
             enabled: true,
             annotations: {
-                "traefik.ingress.kubernetes.io/router.entrypoints": "web, websecure",
-                "traefik.ingress.kubernetes.io/router.middlewares": "default-redirect-to-https@kubernetescrd",
+                "traefik.ingress.kubernetes.io/router.entrypoints": "websecure",
+                "traefik.ingress.kubernetes.io/router.middlewares": "default-nextcloud-redirect-regex@kubernetescrd, default-nextcloud-cors-header@kubernetescrd",
                 "traefik.ingress.kubernetes.io/router.tls.certresolver": "traefikresolver",
             }
         },
         nextcloud: {
             host: "nextcloud.alex-stadler.com",
-            password: nextcloudAdminPw
+            password: nextcloudAdminPw,
+            configs: {
+                "reverse.config.php":
+                    "<?php\n" +
+                    "$CONFIG = array (\n" +
+                    "  'trusted_proxies'   => ['traefik'],\n" +
+                    "  'overwriteprotocol' => 'https',\n" +
+                    ");\n"
+            }
         },
+        // add password generation
         mariadb: {
+            enabled: true
+        },
+        redis: {
+            enabled: true
+        },
+        cronjob: {
             enabled: true
         },
         persistence: {
             enabled: true,
-            size: "1Gi"
+            size: "32Gi"
         }
     },
 });

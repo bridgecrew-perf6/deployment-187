@@ -1,0 +1,27 @@
+kind: Middleware
+apiVersion: traefik.containo.us/v1alpha1
+metadata:
+  name: nextcloud-redirect-regex
+
+spec:
+
+  redirectRegex:
+    permanent: true
+    regex: "https://(.*)/.well-known/(card|cal)dav"
+    replacement: "https://${1}/remote.php/dav/"
+
+---
+kind: Middleware
+apiVersion: traefik.containo.us/v1alpha1
+metadata:
+  name: nextcloud-cors-header
+
+spec:
+  headers:
+    browserXssFilter: true
+    contentTypeNosniff: true
+    customFrameOptionsValue: SAMEORIGIN
+    frameDeny: true
+    stsSeconds: 15552000
+    stsPreload: true
+    stsIncludeSubdomains: true
