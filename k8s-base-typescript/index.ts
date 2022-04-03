@@ -1,8 +1,9 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as  pulumi from "@pulumi/pulumi";
+import {getOrCreateSecret} from "./passwords"
 
 const config = new pulumi.Config();
-const nextcloudAdminPw = config.requireSecret("nextcloudAdminPw");
+const nextcloudAdminPw = config.requireSecret("nextcloud-admin-pw");
 
 const nextcloud = new k8s.helm.v3.Chart("nextcloud", {
     chart: "nextcloud",
@@ -34,15 +35,29 @@ const nextcloud = new k8s.helm.v3.Chart("nextcloud", {
                     ");\n"
             }
         },
-        // add password generation
+        internalDatabase: {
+            enabled: false
+        },
         mariadb: {
-            enabled: true
+            enabled: true,
+            auth: {
+                password: getOrCreateSecret(config, "mariadb-password")
+            },
+            primary: {
+                persistence: {
+                    enabled: true,
+                }
+            }
         },
         redis: {
-            enabled: true
+            enabled: true,
+            auth: {
+                enabled: true,
+                password: getOrCreateSecret(config, "redis-password")
+            }
         },
         cronjob: {
-            enabled: true
+            enabled: false
         },
         persistence: {
             enabled: true,
