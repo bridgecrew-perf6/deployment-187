@@ -24,7 +24,7 @@ const nextcloud = new k8s.helm.v3.Chart("nextcloud", {
             }
         },
         nextcloud: {
-            host: "nextcloud.alex-stadler.com",
+            host: "cloud.alex-stadler.com",
             password: nextcloudAdminPw,
             configs: {
                 "reverse.config.php":
